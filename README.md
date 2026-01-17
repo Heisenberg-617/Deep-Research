@@ -3,6 +3,10 @@
 A multi-agent “deep research” app built with the OpenAI Agents SDK.
 You type a topic → the system plans multiple searches → runs web searches → synthesizes a long markdown report → optionally emails the report → streams progress in a Gradio UI.
 
+This project is designed for **fast, reproducible Python environments** using `uv` instead of pip/venv.
+
+---
+
 ## What’s inside
 
 * **Gradio UI**: enter a query, see streaming status + final report.
@@ -15,58 +19,90 @@ You type a topic → the system plans multiple searches → runs web searches �
 
 ## Project structure
 
-* `deep_research.py` — Gradio app entrypoint
-* `research_manager.py` — orchestration (plan → search → write → email)
-* `planner_agent.py` — creates the search plan
-* `search_agent.py` — runs web searches + summarizes results
-* `writer_agent.py` — produces the final report (markdown)
-* `email_agent.py` — sends the report via SendGrid
+```
+Deep-Research/
+├── deep_research.py        # Gradio app entrypoint
+├── research_manager.py    # orchestration (plan → search → write → email)
+├── planner_agent.py       # creates the search plan
+├── search_agent.py        # runs web searches + summarizes results
+├── writer_agent.py        # produces the final report (markdown)
+├── email_agent.py         # sends the report via SendGrid
+├── .env                  # API keys (not committed)
+└── pyproject.toml        # uv dependency manifest
+```
 
 ---
 
-## Setup
+## Requirements
 
-### 1) Create and activate a virtual environment
+* Python **3.10+**
+* **uv** installed
+
+Restart your terminal after installation.
+
+---
+
+## Setup (with uv)
+
+### 1) Create project environment
+
+From inside the `Deep-Research` repo:
+
+```bash
+uv venv
+```
+
+Activate it:
 
 **macOS / Linux**
 
 ```bash
-python3 -m venv .venv
 source .venv/bin/activate
 ```
 
 **Windows (PowerShell)**
 
 ```powershell
-python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 ```
 
-### 2) Install dependencies
+---
 
-If you don’t already have a `requirements.txt`, create one:
+### 2) Create `pyproject.toml`
+
+If not already present:
 
 ```bash
-cat > requirements.txt << 'EOF'
-gradio
-python-dotenv
-pydantic
-sendgrid
-openai-agents
+cat > pyproject.toml << 'EOF'
+[project]
+name = "deep-research"
+version = "0.1.0"
+description = "Multi-agent deep research app with web search and report generation"
+requires-python = ">=3.10"
+
+dependencies = [
+    "gradio",
+    "python-dotenv",
+    "pydantic",
+    "sendgrid",
+    "openai-agents"
+]
 EOF
 ```
 
-Then install:
+Then install dependencies:
 
 ```bash
-pip install -r requirements.txt
+uv sync
 ```
 
-> Note: if your Agents SDK package name differs in your environment, replace `openai-agents` with the package name you’re using for `from agents import ...`.
+This creates a **locked, reproducible environment**.
+
+---
 
 ### 3) Set environment variables
 
-Create a `.env` file in the project root:
+Create a `.env` file:
 
 ```bash
 cat > .env << 'EOF'
@@ -75,24 +111,26 @@ SENDGRID_API_KEY=your_sendgrid_api_key_here
 EOF
 ```
 
-### 4) Configure email sender/recipient (optional)
+---
 
-If you want the app to email the report, open `email_agent.py` and update:
+### 4) Configure email sender (optional)
+
+Open `email_agent.py` and update:
 
 * the verified **from** sender
 * the **to** recipient email
 
-If you **don’t** want email sending, you can comment out the email step in `research_manager.py`.
+If you do not want email sending, comment out the email step in `research_manager.py`.
 
 ---
 
 ## Run the app
 
 ```bash
-python deep_research.py
+uv run python deep_research.py
 ```
 
-It launches a Gradio page in your browser. Type a topic and click **Run**.
+Gradio will launch in your browser.
 
 ---
 
@@ -104,31 +142,54 @@ OpenAI Agents SDK includes the following hosted tools:
 * The `FileSearchTool` allows retrieving information from your OpenAI Vector Stores.
 * The `ComputerTool` allows automating computer use tasks like taking screenshots and clicking.
 
-### Important note - API charge of WebSearchTool
+---
 
-This is costing me **2.5 cents per call** for OpenAI `WebSearchTool`. That can add up to **$2–$3 for the next 2 labs**. We'll use free and low cost search tools with other platforms, so feel free to skip running this if the cost is a concern. Also student **Christian W.** pointed out that OpenAI can sometimes charge for multiple searches for a single call, so it could sometimes cost more than **2.5 cents per call**.
+## Important note — WebSearchTool pricing
 
-Current pricing is here:
+This project uses OpenAI’s hosted **WebSearchTool**.
 
-```text
+> ⚠️ **Cost warning**
+> WebSearchTool costs around **$0.025 per call**.
+> A few runs can easily reach **$2–$3** depending on how many searches are triggered.
+
+Student **Christian W.** also noted that OpenAI may bill multiple searches for a single logical call, so costs can exceed $0.025 per run.
+
+Always check the latest pricing here:
+
+```
 https://platform.openai.com/docs/pricing#web-search
 ```
+
+If cost is a concern, you can disable web search and plug in free or low-cost search APIs.
 
 ---
 
 ## Troubleshooting
 
-* **No email sent / SendGrid error**
-  Confirm `SENDGRID_API_KEY` is set and your sender address is verified in SendGrid.
+### uv not found
 
-* **Web search errors / tool required**
-  Ensure `OPENAI_API_KEY` is valid and your account has access to web search. Costs apply.
+Make sure `~/.cargo/bin` or `~/.local/bin` is in your PATH (depends on install method).
 
-* **Nothing streams in Gradio**
-  Make sure you’re running Python 3.10+ and installed dependencies in the active venv.
+### Web search errors
+
+Ensure:
+
+* `OPENAI_API_KEY` is valid
+* Your account has access to WebSearchTool
+* Billing is enabled
+
+### Email not sent
+
+Ensure:
+
+* `SENDGRID_API_KEY` is valid
+* Sender email is verified in SendGrid
+
 
 ---
 
-## License
+## Author
 
-Add a license if you plan to share publicly (MIT is a common default).
+**Creator:** Baddy Reda  
+**Status:** UM6P Student | AI & Agents Enthusiast  
+
