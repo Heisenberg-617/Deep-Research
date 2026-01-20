@@ -1,4 +1,4 @@
-# Deep Research (Agents + Web Search + Report + Email)
+# 🤖 Deep Research (Agents + Web Search + Report + Email)
 
 A multi-agent “deep research” app built with the OpenAI Agents SDK.
 You type a topic → the system plans multiple searches → runs web searches → synthesizes a long markdown report → optionally emails the report → streams progress in a Gradio UI.
